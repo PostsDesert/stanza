@@ -1,21 +1,40 @@
 import { Component, For, Show, onMount, createSignal, createMemo } from 'solid-js';
-import { useNavigate } from '@solidjs/router';
+import { useNavigate, useSearchParams } from '@solidjs/router';
 import { messagesStore, fetchMessages, addMessage, updateMessage, deleteMessage } from '../stores/messagesStore';
-import { authStore, logout } from '../stores/authStore';
 import { showToast } from '../stores/uiStore';
 import { MessageCard } from '../components/MessageCard';
 import { MessageInput } from '../components/MessageInput';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EditModal } from '../components/EditModal';
+import { SearchBar } from '../components/SearchBar';
+import { HeaderMenu } from '../components/HeaderMenu';
+import { api } from '../services/api';
+import { parseSearchQuery } from '../utils/search';
+import type { Message, SearchQuery } from '../types';
 import './Feed.css';
 
 export const Feed: Component = () => {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [isLoading, setIsLoading] = createSignal(true);
     const [selectedMessage, setSelectedMessage] = createSignal<string | null>(null);
     const [editingMessageId, setEditingMessageId] = createSignal<string | null>(null);
     const [isEditSaving, setIsEditSaving] = createSignal(false);
+
+    // Search state
+    const [isSearching, setIsSearching] = createSignal(false);
+    const [isSearchActive, setIsSearchActive] = createSignal(false);
+    const [searchResults, setSearchResults] = createSignal<Message[]>([]);
+    const [searchTotal, setSearchTotal] = createSignal(0);
+    const [searchQuery, setSearchQuery] = createSignal('');
+
+    // Determine which messages to display
+    const displayMessages = createMemo(() => {
+        if (isSearchActive()) {
+            return searchResults();
+        }
+        return messagesStore.messages;
+    });
 
     // Get the content of the message being edited
     const editingMessageContent = createMemo(() => {
@@ -23,16 +42,6 @@ export const Feed: Component = () => {
         if (!id) return '';
         const message = messagesStore.messages.find(m => m.id === id);
         return message?.content || '';
-    });
-
-    onMount(async () => {
-        try {
-            await fetchMessages();
-        } catch (err) {
-            showToast('Failed to load messages', 'error');
-        } finally {
-            setIsLoading(false);
-        }
     });
 
     const handleSubmit = async (content: string) => {
@@ -55,11 +64,6 @@ export const Feed: Component = () => {
         }
     };
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login', { replace: true });
-    };
-
     const handleEditSave = async (content: string) => {
         const id = editingMessageId();
         if (!id) return;
@@ -76,29 +80,71 @@ export const Feed: Component = () => {
         }
     };
 
+    const handleSearch = async (query: SearchQuery) => {
+        setSearchParams({ q: searchQuery() });
+        setIsSearching(true);
+        try {
+            const response = await api.searchMessages(query);
+            setSearchResults(response.messages);
+            setSearchTotal(response.total);
+            setIsSearchActive(true);
+        } catch (err) {
+            showToast('Search failed', 'error');
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleTagClick = (tag: string) => {
+        setSearchQuery(`tag:${tag}`);
+        handleSearch({ tags: tag });
+    };
+
+    const handleClearSearch = () => {
+        setSearchParams({ q: undefined });
+        setIsSearchActive(false);
+        setSearchResults([]);
+        setSearchTotal(0);
+        setSearchQuery('');
+    };
+
+    const handleLogoClick = () => {
+        handleClearSearch();
+        navigate('/');
+    };
+
+    onMount(async () => {
+        // Check for search query in URL
+        const q = searchParams.q;
+        if (q) {
+            setSearchQuery(q);
+            const query = parseSearchQuery(q);
+            // Don't await search here to allow fetching messages in parallel
+            handleSearch(query);
+        }
+
+        try {
+            await fetchMessages();
+        } catch (err) {
+            showToast('Failed to load messages', 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    });
+
     return (
         <div class="feed-page">
             <header class="feed-header">
-                <h1 class="feed-title">Dissipate</h1>
-                <div class="feed-actions">
-                    <button
-                        class="header-button"
-                        onClick={() => navigate('/settings')}
-                        aria-label="Settings"
-                        title="Settings"
-                    >
-                        ⚙️
-                    </button>
-                    <ThemeToggle />
-                    <button
-                        class="header-button"
-                        onClick={handleLogout}
-                        aria-label="Logout"
-                        title="Logout"
-                    >
-                        🚪
-                    </button>
-                </div>
+                <h1 class="feed-title" onClick={handleLogoClick}>Dissipate</h1>
+                <SearchBar
+                    query={searchQuery()}
+                    onQueryChange={setSearchQuery}
+                    onSearch={handleSearch}
+                    onClear={handleClearSearch}
+                    isSearching={isSearching()}
+                    isSearchActive={isSearchActive()}
+                />
+                <HeaderMenu />
             </header>
 
             <main class="feed-main">
@@ -108,22 +154,36 @@ export const Feed: Component = () => {
                     </div>
                 </Show>
 
-                <Show when={!isLoading() && messagesStore.messages.length === 0}>
+                <Show when={isSearchActive() && !isSearching()}>
+                    <div class="search-results-info">
+                        <span>{searchTotal()} result{searchTotal() !== 1 ? 's' : ''} found</span>
+                    </div>
+                </Show>
+
+                <Show when={!isLoading() && displayMessages().length === 0 && !isSearchActive()}>
                     <div class="feed-empty">
                         <p>No messages yet.</p>
                         <p>Start typing below!</p>
                     </div>
                 </Show>
 
-                <Show when={!isLoading() && messagesStore.messages.length > 0}>
+                <Show when={!isLoading() && isSearchActive() && displayMessages().length === 0}>
+                    <div class="feed-empty">
+                        <p>No results found.</p>
+                        <p>Try a different search term.</p>
+                    </div>
+                </Show>
+
+                <Show when={!isLoading() && displayMessages().length > 0}>
                     <div class="message-list">
-                        <For each={messagesStore.messages}>
+                        <For each={displayMessages()}>
                             {(message) => (
                                 <MessageCard
                                     message={message}
                                     onClick={() => navigate(`/post/${message.id}`)}
                                     onEdit={() => setEditingMessageId(message.id)}
                                     onDelete={() => handleDelete(message.id)}
+                                    onTagClick={handleTagClick}
                                 />
                             )}
                         </For>

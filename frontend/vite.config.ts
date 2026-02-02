@@ -9,6 +9,13 @@ export default defineConfig({
   plugins: [devtools(), solidPlugin()],
   server: {
     port: 5173,
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
   },
   test: {
     environment: 'jsdom',

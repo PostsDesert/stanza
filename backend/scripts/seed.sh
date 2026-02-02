@@ -5,9 +5,24 @@
 
 set -e
 
-DB_PATH="${1:-dissipate.db}"
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Default database path relative to the backend directory
+DB_PATH="${1:-$SCRIPT_DIR/../dissipate.db}"
 
 echo "Seeding database: $DB_PATH"
+
+# Verify database exists and has schema
+if ! sqlite3 "$DB_PATH" "SELECT name FROM sqlite_master WHERE type='table' AND name='users';" 2>/dev/null | grep -q users; then
+    echo ""
+    echo "Error: Database schema not initialized."
+    echo "Please run the backend once to initialize the schema:"
+    echo "  cd backend && cargo run"
+    echo ""
+    echo "Then re-run this seed script."
+    exit 1
+fi
 
 # Check if sqlite3 is available
 if ! command -v sqlite3 &> /dev/null; then

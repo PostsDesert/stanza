@@ -1,13 +1,16 @@
 import { Component } from 'solid-js';
 import { uiStore, cycleTheme } from '../stores/uiStore';
+import { SunIcon } from './icons/SunIcon';
+import { MoonIcon } from './icons/MoonIcon';
+import { MonitorIcon } from './icons/MonitorIcon';
 import './ThemeToggle.css';
 
 export const ThemeToggle: Component = () => {
     const getIcon = () => {
         switch (uiStore.theme) {
-            case 'light': return '☀️';
-            case 'dark': return '🌙';
-            default: return '🌓';
+            case 'light': return <SunIcon width="20" height="20" />;
+            case 'dark': return <MoonIcon width="20" height="20" />;
+            default: return <MonitorIcon width="20" height="20" />;
         }
     };
 

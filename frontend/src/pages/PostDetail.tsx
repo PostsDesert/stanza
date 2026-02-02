@@ -4,6 +4,8 @@ import { messagesStore, fetchMessages, deleteMessage, updateMessage } from '../s
 import { formatDate, formatRelativeTime, isWithinMinutes } from '../utils/date';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EditModal } from '../components/EditModal';
+import { EditIcon } from '../components/icons/EditIcon';
+import { DeleteIcon } from '../components/icons/DeleteIcon';
 import { showToast } from '../stores/uiStore';
 import './PostDetail.css';
 
@@ -17,13 +19,6 @@ const PostDetail: Component = () => {
     const message = createMemo(() =>
         messagesStore.messages.find(m => m.id === params.id)
     );
-
-    // Dynamic title (first 30 chars)
-    const title = createMemo(() => {
-        const msg = message();
-        if (!msg) return 'Post';
-        return msg.content.length > 30 ? msg.content.slice(0, 30) + '...' : msg.content;
-    });
 
     // Timestamp logic
     const timestamp = createMemo(() => {
@@ -80,6 +75,31 @@ const PostDetail: Component = () => {
         }
     };
 
+    const handleTagClick = (tag: string) => {
+        navigate(`/?q=tag:${tag}`);
+    };
+
+    const formatContent = (text: string) => {
+        const parts = text.split(/(#\w+)/g);
+        return parts.map((part) => {
+            if (part.startsWith('#') && part.length > 1) {
+                const tag = part.substring(1);
+                return (
+                    <span
+                        class="hashtag"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleTagClick(tag);
+                        }}
+                    >
+                        {part}
+                    </span>
+                );
+            }
+            return part;
+        });
+    };
+
     return (
         <div class="post-detail-page">
             <header class="post-detail-header">
@@ -90,10 +110,31 @@ const PostDetail: Component = () => {
                 >
                     ← Back
                 </button>
-                <h1 title={message()?.content}>{title()}</h1>
+                <Show when={message()}>
+                    <div class="post-actions">
+                        <button
+                            class="action-button edit-button"
+                            onClick={() => setIsEditing(true)}
+                            aria-label="Edit message"
+                            title="Edit"
+                        >
+                            <EditIcon width="16" height="16" /> Edit
+                        </button>
+                        <button
+                            class="action-button delete-button"
+                            onClick={handleDelete}
+                            aria-label="Delete message"
+                            title="Delete"
+                        >
+                            <DeleteIcon width="16" height="16" /> Delete
+                        </button>
+                    </div>
+                </Show>
             </header>
 
             <main class="post-detail-main">
+                <span class="post-timestamp">{timestamp()}</span>
+
                 <Show when={messagesStore.isSyncing && !message()}>
                     <div class="loading-container">
                         <LoadingSpinner size="lg" />
@@ -111,29 +152,8 @@ const PostDetail: Component = () => {
                     {(msg) => (
                         <>
                             <article class="full-post">
-                                <div class="post-meta-header">
-                                    <span class="post-date" title={formatDate(msg().created_at)}>{timestamp()}</span>
-                                    <div class="post-actions">
-                                        <button
-                                            class="action-button edit-button"
-                                            onClick={() => setIsEditing(true)}
-                                            aria-label="Edit message"
-                                            title="Edit"
-                                        >
-                                            ✏️ Edit
-                                        </button>
-                                        <button
-                                            class="action-button delete-button"
-                                            onClick={handleDelete}
-                                            aria-label="Delete message"
-                                            title="Delete"
-                                        >
-                                            🗑️ Delete
-                                        </button>
-                                    </div>
-                                </div>
                                 <div class="post-content">
-                                    {msg().content}
+                                    {formatContent(msg().content)}
                                 </div>
                             </article>
 

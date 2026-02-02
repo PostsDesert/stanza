@@ -1,7 +1,7 @@
 use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Sqlite};
 use thiserror::Error;
 
-use crate::models::{Message, User};
+use crate::models::{Message, SearchQuery, User};
 
 #[derive(Debug, Error)]
 pub enum DbError {
@@ -102,6 +102,67 @@ async fn init_schema(pool: &DbPool) -> Result<(), DbError> {
 
     // Enable WAL mode
     sqlx::query("PRAGMA journal_mode = WAL")
+        .execute(pool)
+        .await?;
+
+    // Create FTS5 virtual table for full-text search on messages
+    sqlx::query(
+        r#"
+        CREATE VIRTUAL TABLE IF NOT EXISTS messages_fts USING fts5(
+            id UNINDEXED,
+            user_id UNINDEXED,
+            content,
+            created_at UNINDEXED,
+            content='messages',
+            content_rowid='rowid'
+        )
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    // Create triggers to keep FTS index in sync with messages table
+    // We use IF NOT EXISTS to avoid errors on restart
+    sqlx::query(
+        r#"
+        CREATE TRIGGER IF NOT EXISTS messages_ai AFTER INSERT ON messages BEGIN
+            INSERT INTO messages_fts(rowid, id, user_id, content, created_at)
+            VALUES (NEW.rowid, NEW.id, NEW.user_id, NEW.content, NEW.created_at);
+        END
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        r#"
+        CREATE TRIGGER IF NOT EXISTS messages_ad AFTER DELETE ON messages BEGIN
+            INSERT INTO messages_fts(messages_fts, rowid, id, user_id, content, created_at)
+            VALUES ('delete', OLD.rowid, OLD.id, OLD.user_id, OLD.content, OLD.created_at);
+        END
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        r#"
+        CREATE TRIGGER IF NOT EXISTS messages_au AFTER UPDATE ON messages BEGIN
+            INSERT INTO messages_fts(messages_fts, rowid, id, user_id, content, created_at)
+            VALUES ('delete', OLD.rowid, OLD.id, OLD.user_id, OLD.content, OLD.created_at);
+            INSERT INTO messages_fts(rowid, id, user_id, content, created_at)
+            VALUES (NEW.rowid, NEW.id, NEW.user_id, NEW.content, NEW.created_at);
+        END
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    // Always rebuild the FTS index on startup to ensure it's perfectly in sync.
+    // This fixes issues where 'COUNT(*)' on external content tables might be misleading,
+    // and ensures any missed triggers (e.g. during migrations) are corrected.
+    // For <100k messages, this is very fast (sub-second).
+    sqlx::query("INSERT INTO messages_fts(messages_fts) VALUES('rebuild')")
         .execute(pool)
         .await?;
 
@@ -377,6 +438,111 @@ pub async fn delete_message(pool: &DbPool, id: &str, user_id: &str) -> Result<()
     }
 
     Ok(())
+}
+
+/// Search messages using full-text search with optional filters
+pub async fn search_messages(
+    pool: &DbPool,
+    user_id: &str,
+    query: &SearchQuery,
+) -> Result<Vec<Message>, DbError> {
+    // Build the query dynamically based on provided filters
+    let mut sql = String::from(
+        r#"
+        SELECT m.id, m.user_id, m.content, m.created_at, m.updated_at
+        FROM messages m
+        WHERE m.user_id = ?
+        "#,
+    );
+    let mut has_fts = false;
+
+    // Add FTS condition if query text is provided
+    if let Some(ref q) = query.q {
+        if !q.trim().is_empty() {
+            sql.push_str(
+                r#"
+                AND m.rowid IN (
+                    SELECT rowid FROM messages_fts WHERE messages_fts MATCH ?
+                )
+                "#,
+            );
+            has_fts = true;
+        }
+    }
+
+    // Add date range conditions
+    if query.from.is_some() {
+        sql.push_str(" AND m.created_at >= ?");
+    }
+    if query.to.is_some() {
+        sql.push_str(" AND m.created_at <= ?");
+    }
+
+    // Add hashtag conditions
+    // Tags are searched as exact matches with # prefix in content
+    if let Some(ref tags) = query.tags {
+        let tag_list: Vec<&str> = tags.split(',').map(|t| t.trim()).filter(|t| !t.is_empty()).collect();
+        for _ in &tag_list {
+            sql.push_str(" AND m.content LIKE ?");
+        }
+    }
+
+    sql.push_str(" ORDER BY m.created_at DESC LIMIT 100");
+
+    // Execute query with dynamic bindings
+    let mut query_builder = sqlx::query_as::<_, Message>(&sql).bind(user_id);
+
+    // Bind FTS query if present
+    if has_fts {
+        if let Some(ref q) = query.q {
+            // Escape special FTS5 characters and format for prefix matching
+            let fts_query = format_fts_query(q);
+            query_builder = query_builder.bind(fts_query);
+        }
+    }
+
+    // Bind date filters
+    if let Some(ref from) = query.from {
+        query_builder = query_builder.bind(from);
+    }
+    if let Some(ref to) = query.to {
+        query_builder = query_builder.bind(to);
+    }
+
+    // Bind tag filters
+    if let Some(ref tags) = query.tags {
+        let tag_list: Vec<&str> = tags.split(',').map(|t| t.trim()).filter(|t| !t.is_empty()).collect();
+        for tag in tag_list {
+            // Match hashtag anywhere in content (case-insensitive via LIKE)
+            let pattern = format!("%#{}%", tag);
+            query_builder = query_builder.bind(pattern);
+        }
+    }
+
+    let messages = query_builder.fetch_all(pool).await?;
+    Ok(messages)
+}
+
+/// Format a user query for FTS5 MATCH
+/// Handles prefix matching and escapes special characters
+fn format_fts_query(query: &str) -> String {
+    let trimmed = query.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+
+    // Split into terms and add prefix matching for each
+    let terms: Vec<String> = trimmed
+        .split_whitespace()
+        .map(|term| {
+            // Escape double quotes
+            let escaped = term.replace('"', "\"\"");
+            // Add prefix matching with * for partial matches
+            format!("\"{}\"*", escaped)
+        })
+        .collect();
+
+    terms.join(" ")
 }
 
 #[cfg(test)]
@@ -663,5 +829,40 @@ mod tests {
         assert_eq!(user2_messages.len(), 1);
         assert_eq!(user1_messages[0].content, "User 1's message");
         assert_eq!(user2_messages[0].content, "User 2's message");
+    }
+
+    #[tokio::test]
+    async fn test_search_messages_fts_rebuild() {
+        let pool = setup_test_db().await;
+        let user = create_test_user("rebuild@example.com");
+        create_user(&pool, &user).await.unwrap();
+
+        let msg1 = Message::new(user.id.clone(), "I will mount the TV".to_string());
+        let msg2 = Message::new(user.id.clone(), "Mount Everest is tall".to_string());
+        create_message(&pool, &msg1).await.unwrap();
+        create_message(&pool, &msg2).await.unwrap();
+
+        // Simulate broken index by clearing it (triggers are active on create_message, so index is populated)
+        // We manually clear it to test rebuild
+        sqlx::query("DELETE FROM messages_fts")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        // Verify search broken
+        let query_broken = SearchQuery { q: Some("mount".to_string()), ..Default::default() };
+        let results_broken = search_messages(&pool, &user.id, &query_broken).await.unwrap();
+        assert_eq!(results_broken.len(), 0);
+
+        // Run rebuild
+        sqlx::query("INSERT INTO messages_fts(messages_fts) VALUES('rebuild')")
+            .execute(&pool)
+            .await
+            .unwrap();
+
+        // Verify search fixed
+        let query_fixed = SearchQuery { q: Some("mount".to_string()), ..Default::default() };
+        let results_fixed = search_messages(&pool, &user.id, &query_fixed).await.unwrap();
+        assert_eq!(results_fixed.len(), 2);
     }
 }
