@@ -59,26 +59,20 @@ export const MessageInput: Component<MessageInputProps> = (props) => {
                 aria-label="Message content"
             />
 
-            <div class="message-input-footer">
-                <span class="character-count">
-                    {content().length}
-                </span>
-
-                <button
-                    class="submit-button"
-                    onClick={handleSubmit}
-                    disabled={!content().trim() || props.disabled}
-                    aria-label="Send message"
+            <button
+                class="submit-button"
+                onClick={handleSubmit}
+                disabled={!content().trim() || props.disabled}
+                aria-label="Send message"
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    class="submit-icon"
+                    fill="currentColor"
                 >
-                    <svg
-                        viewBox="0 0 24 24"
-                        class="submit-icon"
-                        fill="currentColor"
-                    >
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                    </svg>
-                </button>
-            </div>
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+            </button>
         </div>
     );
 };
