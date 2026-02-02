@@ -8,6 +8,30 @@
     background: var(--bg-primary);
     border-top: 1px solid var(--border-color);
     transition: box-shadow 0.2s;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+/* iOS Safari specific: Remove extra padding, rely on safe area */
+@supports (-webkit-touch-callout: none) {
+    .message-input-container {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .message-input-container.focused {
+        padding-bottom: 10px;
+    }
+}
+
+/* PWA Mode (Standalone): Restore padding on iOS (and keep it elsewhere) */
+@media (display-mode: standalone) {
+    .message-input-container {
+        padding-bottom: calc(48px + env(safe-area-inset-bottom));
+    }
+
+    .message-input-container.focused {
+        padding-bottom: 2px;
+    }
 }
 
 .message-input-container.focused {
@@ -15,7 +39,7 @@
 }
 
 .message-input {
-    width: 100%;
+    flex: 1;
     padding: 12px 14px;
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -27,6 +51,7 @@
     overflow-y: auto;
     transition: border-color 0.2s;
     font-family: inherit;
+    /* Remove width: 100% since we are using flex: 1 */
 }
 
 .message-input:focus {
@@ -44,35 +69,26 @@
     opacity: 0.6;
 }
 
-.message-input-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 8px;
-}
-
-.character-count {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
+/* Footer and character count removed */
 
 .submit-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 44px; /* Slightly larger touch target, but no background */
+    height: 44px;
+    padding: 0;
     border: none;
-    border-radius: 50%;
-    background: var(--accent);
-    color: white;
+    background: transparent;
+    color: var(--accent);
     cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
+    transition: transform 0.2s, opacity 0.2s;
+    margin-bottom: 2px; /* Visual alignment with input text */
 }
 
 .submit-button:hover:not(:disabled) {
-    background: #1a91da;
-    transform: scale(1.05);
+    transform: scale(1.1);
+    opacity: 0.8;
 }
 
 .submit-button:active:not(:disabled) {
@@ -80,12 +96,11 @@
 }
 
 .submit-button:disabled {
-    background: var(--border-color);
-    color: var(--text-secondary);
+    color: var(--border-color);
     cursor: not-allowed;
 }
 
 .submit-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
 }
