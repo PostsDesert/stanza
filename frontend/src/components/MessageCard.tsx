@@ -1,6 +1,8 @@
 import { Component, Show, createMemo } from 'solid-js';
 import type { Message } from '../types';
 import { formatDate, formatRelativeTime, isWithinMinutes } from '../utils/date';
+import { EditIcon } from './icons/EditIcon';
+import { DeleteIcon } from './icons/DeleteIcon';
 import './MessageCard.css';
 
 interface MessageCardProps {
@@ -8,6 +10,7 @@ interface MessageCardProps {
     onClick?: () => void;
     onEdit?: () => void;
     onDelete?: () => void;
+    onTagClick?: (tag: string) => void;
 }
 
 const PREVIEW_LENGTH = 200;
@@ -24,6 +27,27 @@ export const MessageCard: Component<MessageCardProps> = (props) => {
             remaining: content.length - PREVIEW_LENGTH,
         };
     });
+
+    const formatContent = (text: string) => {
+        const parts = text.split(/(#\w+)/g);
+        return parts.map((part) => {
+            if (part.startsWith('#') && part.length > 1) {
+                const tag = part.substring(1);
+                return (
+                    <span
+                        class="hashtag"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            props.onTagClick?.(tag);
+                        }}
+                    >
+                        {part}
+                    </span>
+                );
+            }
+            return part;
+        });
+    };
 
     const timestamp = createMemo(() => {
         // Show relative time if within last 24 hours, otherwise full date
@@ -53,7 +77,7 @@ export const MessageCard: Component<MessageCardProps> = (props) => {
         >
             <div class="message-content">
                 <p class="message-text">
-                    {preview().text}
+                    {formatContent(preview().text)}
                     <Show when={preview().truncated}>
                         <span class="message-truncated">
                             ... <span class="message-remaining">+{preview().remaining} chars</span>
@@ -74,7 +98,7 @@ export const MessageCard: Component<MessageCardProps> = (props) => {
                         aria-label="Edit message"
                         title="Edit"
                     >
-                        ✏️
+                        <EditIcon width="16" height="16" />
                     </button>
                     <button
                         class="message-action message-action-delete"
@@ -82,7 +106,7 @@ export const MessageCard: Component<MessageCardProps> = (props) => {
                         aria-label="Delete message"
                         title="Delete"
                     >
-                        🗑️
+                        <DeleteIcon width="16" height="16" />
                     </button>
                 </div>
             </div>

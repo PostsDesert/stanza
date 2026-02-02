@@ -12,8 +12,8 @@
     top: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
+    gap: 12px;
+    padding: 10px 16px;
     background: var(--bg-primary);
     border-bottom: 1px solid var(--border-color);
     z-index: 100;
@@ -21,33 +21,18 @@
 
 .feed-title {
     margin: 0;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--text-primary);
-}
-
-.feed-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.header-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: none;
-    border-radius: 50%;
-    background: var(--bg-secondary);
+    white-space: nowrap;
+    margin-right: auto; /* Push search and menu to the right */
     cursor: pointer;
-    font-size: 18px;
-    transition: background 0.2s;
+    user-select: none;
+    transition: color 0.2s ease;
 }
 
-.header-button:hover {
-    background: var(--border-color);
+.feed-title:hover {
+    color: var(--accent-primary);
 }
 
 .feed-main {
@@ -90,4 +75,14 @@
     gap: 12px;
     max-width: 640px;
     margin: 0 auto;
+}
+
+.search-results-info {
+    max-width: 640px;
+    margin: 0 auto 12px;
+    padding: 8px 12px;
+    background: rgba(29, 161, 242, 0.1);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--accent);
 }

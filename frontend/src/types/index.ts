@@ -45,6 +45,19 @@ export interface MessagesResponse {
     messages: Message[];
 }
 
+// Search types
+export interface SearchQuery {
+    q?: string;
+    from?: string;
+    to?: string;
+    tags?: string;
+}
+
+export interface SearchResponse {
+    messages: Message[];
+    total: number;
+}
+
 // User update types
 export interface UpdateEmailRequest {
     email: string;

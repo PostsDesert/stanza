@@ -9,6 +9,8 @@ import type {
     UpdateUsernameRequest,
     UpdatePasswordRequest,
     SuccessResponse,
+    SearchQuery,
+    SearchResponse,
 } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -68,6 +70,16 @@ export const api = {
     async getMessages(since?: string): Promise<MessagesResponse> {
         const params = since ? `?since=${encodeURIComponent(since)}` : '';
         return request<MessagesResponse>(`/messages${params}`);
+    },
+
+    async searchMessages(query: SearchQuery): Promise<SearchResponse> {
+        const params = new URLSearchParams();
+        if (query.q) params.append('q', query.q);
+        if (query.from) params.append('from', query.from);
+        if (query.to) params.append('to', query.to);
+        if (query.tags) params.append('tags', query.tags);
+        const queryString = params.toString();
+        return request<SearchResponse>(`/messages/search${queryString ? `?${queryString}` : ''}`);
     },
 
     async createMessage(content: string, id?: string): Promise<Message> {

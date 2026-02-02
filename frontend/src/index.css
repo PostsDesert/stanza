@@ -136,3 +136,14 @@ textarea {
     white-space: nowrap;
     border: 0;
 }
+
+/* Hashtag styling */
+.hashtag {
+    color: var(--accent);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.hashtag:hover {
+    text-decoration: underline;
+}

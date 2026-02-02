@@ -1,0 +1,103 @@
+.header-menu {
+    position: relative;
+}
+
+.menu-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.menu-trigger:hover {
+    background: var(--border-color);
+}
+
+.menu-trigger svg {
+    width: 20px;
+    height: 20px;
+}
+
+.menu-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 180px;
+    padding: 6px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    animation: menuFadeIn 0.15s ease-out;
+}
+
+@keyframes menuFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.menu-item:hover {
+    background: var(--bg-secondary);
+}
+
+.menu-item-danger {
+    color: #e0245e;
+}
+
+.menu-item-danger:hover {
+    background: rgba(224, 36, 94, 0.1);
+}
+
+.menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+
+.menu-item-settings:hover {
+    background: rgba(29, 161, 242, 0.1);
+    color: rgb(29, 161, 242);
+}
+
+.menu-item-theme:hover {
+    background: rgba(255, 173, 31, 0.1);
+    color: rgb(255, 173, 31);
+}
+
+.menu-divider {
+    height: 1px;
+    margin: 6px 0;
+    background: var(--border-color);
+}

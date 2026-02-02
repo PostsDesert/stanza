@@ -227,6 +227,31 @@ pub async fn delete_message(
     Ok(Json(SuccessResponse::new()))
 }
 
+/// GET /api/messages/search
+/// Search messages with full-text search and filters
+pub async fn search_messages(
+    State(state): State<SharedState>,
+    user_id: String,
+    Query(query): Query<SearchQuery>,
+) -> Result<Json<SearchResponse>, (StatusCode, Json<ErrorResponse>)> {
+    let messages = db::search_messages(&state.pool, &user_id, &query)
+        .await
+        .map_err(|_| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                ErrorResponse::new("Search failed"),
+            )
+        })?;
+
+    let total = messages.len();
+    let message_responses: Vec<MessageResponse> = messages.iter().map(|m| m.to_response()).collect();
+
+    Ok(Json(SearchResponse {
+        messages: message_responses,
+        total,
+    }))
+}
+
 // ============ User Management Handlers ============
 
 /// PUT /api/user/email

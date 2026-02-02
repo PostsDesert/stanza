@@ -184,6 +184,26 @@ pub struct MessagesQuery {
     pub since: Option<String>,
 }
 
+/// Search query parameters
+#[derive(Debug, Deserialize, Default)]
+pub struct SearchQuery {
+    /// Full-text search query
+    pub q: Option<String>,
+    /// Filter by start date (ISO 8601 format)
+    pub from: Option<String>,
+    /// Filter by end date (ISO 8601 format)
+    pub to: Option<String>,
+    /// Filter by hashtags (comma-separated, without # prefix)
+    pub tags: Option<String>,
+}
+
+/// Search response with results
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SearchResponse {
+    pub messages: Vec<MessageResponse>,
+    pub total: usize,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -204,7 +224,7 @@ mod tests {
         assert_eq!(user.salt, "salt123");
         assert!(!user.created_at.is_empty());
         assert_eq!(user.created_at, user.updated_at);
-        
+
         // Verify UUID format
         Uuid::parse_str(&user.id).expect("User ID should be valid UUID");
     }
@@ -235,7 +255,7 @@ mod tests {
         assert_eq!(message.content, "Hello, world!");
         assert!(!message.created_at.is_empty());
         assert_eq!(message.created_at, message.updated_at);
-        
+
         // Verify UUID format
         Uuid::parse_str(&message.id).expect("Message ID should be valid UUID");
     }
@@ -257,10 +277,7 @@ mod tests {
 
     #[test]
     fn test_message_to_response() {
-        let message = Message::new(
-            Uuid::new_v4().to_string(),
-            "Test message".to_string(),
-        );
+        let message = Message::new(Uuid::new_v4().to_string(), "Test message".to_string());
 
         let response = message.to_response();
 

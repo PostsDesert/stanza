@@ -52,6 +52,7 @@ fn create_router(state: SharedState) -> Router {
     // Protected routes (auth required)
     let protected_routes = Router::new()
         // Messages
+        .route("/api/messages/search", get(search_messages_handler))
         .route("/api/messages", get(get_messages_handler))
         .route("/api/messages", post(create_message_handler))
         .route("/api/messages/:id", put(update_message_handler))
@@ -108,6 +109,14 @@ async fn delete_message_handler(
     Path(id): Path<String>,
 ) -> Result<Json<models::SuccessResponse>, (StatusCode, Json<ErrorResponse>)> {
     handlers::delete_message(State(state), user_id, Path(id)).await
+}
+
+async fn search_messages_handler(
+    State(state): State<SharedState>,
+    AuthUser(user_id): AuthUser,
+    Query(query): Query<models::SearchQuery>,
+) -> Result<Json<models::SearchResponse>, (StatusCode, Json<ErrorResponse>)> {
+    handlers::search_messages(State(state), user_id, Query(query)).await
 }
 
 async fn update_email_handler(
