@@ -8,7 +8,7 @@ A Twitter-like microblogging platform where users only see their own messages.
 dissipate/
 ├── backend/          # Rust/Axum backend
 ├── frontend/         # SolidJS frontend
-├── database/         # SQLite database files
+├── backend/database/ # SQLite database file (dissipate.db)
 └── PLAN.md           # Implementation plan
 ```
 

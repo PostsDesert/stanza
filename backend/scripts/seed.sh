@@ -9,7 +9,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Default database path relative to the backend directory
-DB_PATH="${1:-$SCRIPT_DIR/../dissipate.db}"
+DB_PATH="${1:-$SCRIPT_DIR/../database/dissipate.db}"
 
 echo "Seeding database: $DB_PATH"
 

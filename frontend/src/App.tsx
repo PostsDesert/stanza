@@ -1,4 +1,4 @@
-import { createEffect, onCleanup, type Component } from 'solid-js';
+import { createEffect, onCleanup, Show, type Component } from 'solid-js';
 import { Router, Route, Navigate } from '@solidjs/router';
 import { isAuthenticated } from './stores/authStore';
 import { ToastContainer } from './components/Toast';
@@ -11,18 +11,20 @@ import './index.css';
 
 // Protected route component
 const ProtectedRoute: Component<{ component: Component }> = (props) => {
-    if (!isAuthenticated()) {
-        return <Navigate href="/login" />;
-    }
-    return <props.component />;
+    return (
+        <Show when={isAuthenticated()} fallback={<Navigate href="/login" />}>
+            <props.component />
+        </Show>
+    );
 };
 
 // Public route (redirects if already authenticated)
 const PublicRoute: Component<{ component: Component }> = (props) => {
-    if (isAuthenticated()) {
-        return <Navigate href="/" />;
-    }
-    return <props.component />;
+    return (
+        <Show when={!isAuthenticated()} fallback={<Navigate href="/" />}>
+            <props.component />
+        </Show>
+    );
 };
 
 const App: Component = () => {

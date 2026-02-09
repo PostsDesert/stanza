@@ -3,6 +3,7 @@
     bottom: 0;
     left: 0;
     right: 0;
+    z-index: 1000;
     padding: 12px 16px;
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
     background: var(--bg-primary);

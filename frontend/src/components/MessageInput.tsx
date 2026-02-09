@@ -61,6 +61,7 @@ export const MessageInput: Component<MessageInputProps> = (props) => {
 
             <button
                 class="submit-button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={handleSubmit}
                 disabled={!content().trim() || props.disabled}
                 aria-label="Send message"

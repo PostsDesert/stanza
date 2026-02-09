@@ -17,8 +17,5 @@ services:
       - JWT_SECRET=${JWT_SECRET:-change_me_in_production}
       - RUST_LOG=${RUST_LOG:-info}
     volumes:
-      - dissipate-data:/app/database
+      - ../backend/database:/app/database
     restart: unless-stopped
-
-volumes:
-  dissipate-data:

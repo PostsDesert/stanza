@@ -116,7 +116,7 @@ manage_users remove email@example.com
 - [ ] Change `JWT_SECRET` to a long random string (minimum 32 characters)
 - [ ] Use HTTPS in production (set up reverse proxy with SSL)
 - [ ] Set `RUST_LOG=info` or `warn` in production (avoid `debug` or `trace`)
-- [ ] Regularly backup the `/app/database` volume
+- [ ] Regularly backup the `backend/database/dissipate.db` file
 - [ ] Keep Docker images up to date
 
 ## Troubleshooting
@@ -133,20 +133,19 @@ If you see CORS errors in the browser console:
    ```
 3. **Verify**: Check the browser's network tab to see what URL it's trying to reach
 
-### Database Issues
+### Database Management
 
-If the application can't access the database:
+The database is stored as a file on the host machine at `backend/database/dissipate.db`. This file is mounted into the container.
 
+**Backup:**
+Simply copy the `backend/database/dissipate.db` file to a safe location.
+
+**Reset Database:**
+To reset the database (⚠️ deletes all data), stop the container and delete the file:
 ```bash
-# Check if the volume exists
-docker volume ls | grep dissipate
-
-# Check permissions inside container
-docker exec -it dissipate ls -la /app/database
-
-# Reset the database (⚠️ deletes all data)
-docker-compose down -v
-docker-compose up --build
+docker-compose down
+rm backend/database/dissipate.db
+docker-compose up -d --build
 ```
 
 ### Logs
