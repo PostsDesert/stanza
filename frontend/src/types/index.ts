@@ -14,6 +14,8 @@ export interface Message {
     content: string;
     created_at: string;
     updated_at: string;
+    syncState?: 'synced' | 'pending' | 'failed';
+    localUpdatedAt?: string;
 }
 
 // Auth types
@@ -86,11 +88,16 @@ export type Theme = 'auto' | 'light' | 'dark';
 
 // Pending operation for offline queue
 export interface PendingOperation {
-    id: string;
+    opId: string;
+    messageId: string;
     type: 'create' | 'update' | 'delete';
-    data: CreateMessageRequest | UpdateMessageRequest | string;
-    timestamp: string;
-    retries: number;
+    payload: CreateMessageRequest | UpdateMessageRequest;
+    createdAt: string;
+    updatedAt: string;
+    status: 'pending' | 'replaying' | 'failed';
+    attempts: number;
+    lastError?: string;
+    lastHttpStatus?: number;
 }
 
 // Toast notification type

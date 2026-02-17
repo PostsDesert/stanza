@@ -3,8 +3,10 @@ import { useNavigate } from '@solidjs/router';
 import { authStore } from '../stores/authStore';
 import { showToast } from '../stores/uiStore';
 import { api } from '../services/api';
+import { discardFailedOperation, messagesStore, retryFailedOperation, syncOutbox } from '../stores/messagesStore';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { SyncStatus } from '../components/SyncStatus';
 import './Settings.css';
 
 export const Settings: Component = () => {
@@ -111,6 +113,25 @@ export const Settings: Component = () => {
         }
     };
 
+    const handleRetryFailed = async (opId: string) => {
+        try {
+            await retryFailedOperation(opId);
+            showToast('Retry scheduled', 'info');
+            await syncOutbox();
+        } catch (err) {
+            showToast('Failed to retry operation', 'error');
+        }
+    };
+
+    const handleDiscardFailed = async (opId: string) => {
+        try {
+            await discardFailedOperation(opId);
+            showToast('Failed operation discarded', 'info');
+        } catch (err) {
+            showToast('Failed to discard operation', 'error');
+        }
+    };
+
     return (
         <div class="settings-page">
             <header class="settings-header">
@@ -122,6 +143,7 @@ export const Settings: Component = () => {
                     ← Back
                 </button>
                 <h1 class="settings-title">Settings</h1>
+                <SyncStatus />
                 <ThemeToggle />
             </header>
 
@@ -209,6 +231,41 @@ export const Settings: Component = () => {
                             Export as Markdown
                         </button>
                     </div>
+                </section>
+
+                <section class="settings-section">
+                    <h2>Offline Sync Issues</h2>
+                    <Show
+                        when={messagesStore.failedOperations.length > 0}
+                        fallback={<p>No failed sync operations.</p>}
+                    >
+                        <div class="failed-ops-list">
+                            {messagesStore.failedOperations.map((op) => (
+                                <div class="failed-op-item">
+                                    <div class="failed-op-text">
+                                        <strong>{op.type.toUpperCase()}</strong> for message {op.messageId}
+                                        <div>{op.lastError || 'Unknown error'}</div>
+                                    </div>
+                                    <div class="failed-op-actions">
+                                        <button
+                                            class="form-button"
+                                            type="button"
+                                            onClick={() => handleRetryFailed(op.opId)}
+                                        >
+                                            Retry
+                                        </button>
+                                        <button
+                                            class="form-button"
+                                            type="button"
+                                            onClick={() => handleDiscardFailed(op.opId)}
+                                        >
+                                            Discard
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </Show>
                 </section>
             </main>
         </div>

@@ -1,0 +1,68 @@
+.sync-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
+}
+
+.sync-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.sync-status.is-synced {
+    background: rgba(22, 163, 74, 0.12);
+    color: #166534;
+    border-color: rgba(22, 163, 74, 0.28);
+}
+
+.sync-status.is-synced .sync-status-dot {
+    background: #16a34a;
+}
+
+.sync-status.is-syncing {
+    background: rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+    border-color: rgba(37, 99, 235, 0.28);
+}
+
+.sync-status.is-syncing .sync-status-dot {
+    background: #2563eb;
+}
+
+.sync-status.is-offline {
+    background: rgba(107, 114, 128, 0.2);
+    color: #374151;
+    border-color: rgba(107, 114, 128, 0.35);
+}
+
+.sync-status.is-offline .sync-status-dot {
+    background: #6b7280;
+}
+
+.sync-status.is-pending {
+    background: rgba(217, 119, 6, 0.14);
+    color: #b45309;
+    border-color: rgba(217, 119, 6, 0.3);
+}
+
+.sync-status.is-pending .sync-status-dot {
+    background: #d97706;
+}
+
+.sync-status.is-failed {
+    background: rgba(220, 38, 38, 0.12);
+    color: #b91c1c;
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+.sync-status.is-failed .sync-status-dot {
+    background: #dc2626;
+}

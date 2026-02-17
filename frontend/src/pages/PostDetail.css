@@ -37,6 +37,39 @@
     margin-bottom: 1.5rem;
 }
 
+.post-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.post-meta .post-timestamp {
+    margin-bottom: 0;
+}
+
+.post-sync-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.post-sync-badge.is-pending {
+    color: #b45309;
+    background: rgba(217, 119, 6, 0.12);
+    border-color: rgba(217, 119, 6, 0.28);
+}
+
+.post-sync-badge.is-failed {
+    color: #b91c1c;
+    background: rgba(220, 38, 38, 0.12);
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
 .back-button {
     background: none;
     border: none;

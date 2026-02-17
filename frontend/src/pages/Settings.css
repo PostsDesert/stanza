@@ -120,3 +120,42 @@
 .export-buttons .form-button:hover:not(:disabled) {
     background: var(--border-color);
 }
+
+.failed-ops-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.failed-op-item {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-secondary);
+}
+
+.failed-op-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.failed-op-text strong {
+    color: var(--text-primary);
+}
+
+.failed-op-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.failed-op-actions .form-button {
+    padding: 8px 10px;
+    font-size: 13px;
+}

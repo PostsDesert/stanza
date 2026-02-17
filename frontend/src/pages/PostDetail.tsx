@@ -1,12 +1,13 @@
 import { Component, Show, createMemo, onMount, createSignal } from 'solid-js';
 import { useParams, useNavigate } from '@solidjs/router';
-import { messagesStore, fetchMessages, deleteMessage, updateMessage } from '../stores/messagesStore';
+import { messagesStore, fetchMessages, deleteMessage, updateMessage, initOfflineMessages, syncOutbox } from '../stores/messagesStore';
 import { formatDate, formatRelativeTime, isWithinMinutes } from '../utils/date';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EditModal } from '../components/EditModal';
 import { EditIcon } from '../components/icons/EditIcon';
 import { DeleteIcon } from '../components/icons/DeleteIcon';
-import { showToast } from '../stores/uiStore';
+import { showToast, uiStore } from '../stores/uiStore';
+import { SyncStatus } from '../components/SyncStatus';
 import './PostDetail.css';
 
 const PostDetail: Component = () => {
@@ -30,11 +31,28 @@ const PostDetail: Component = () => {
         return formatDate(msg.created_at);
     });
 
+    const syncBadge = createMemo(() => {
+        const msg = message();
+        if (!msg) return null;
+        if (msg.syncState === 'failed') {
+            return { label: 'Sync failed', className: 'post-sync-badge is-failed' };
+        }
+        if (msg.syncState === 'pending') {
+            return { label: 'Queued', className: 'post-sync-badge is-pending' };
+        }
+        return null;
+    });
+
     // If message not found, try fetching (in case of direct link or refresh)
     onMount(async () => {
+        await initOfflineMessages();
+
         if (!message() && messagesStore.messages.length === 0) {
             try {
-                await fetchMessages();
+                if (uiStore.isOnline) {
+                    await fetchMessages();
+                    await syncOutbox();
+                }
             } catch (error) {
                 console.error('Failed to load messages', error);
             }
@@ -52,7 +70,11 @@ const PostDetail: Component = () => {
 
         try {
             await deleteMessage(msg.id);
-            showToast('Message deleted', 'info');
+            if (uiStore.isOnline) {
+                showToast('Message deleted', 'info');
+            } else {
+                showToast('Delete queued for sync', 'info');
+            }
             navigate('/');
         } catch (err) {
             showToast('Failed to delete message', 'error');
@@ -65,8 +87,12 @@ const PostDetail: Component = () => {
 
         setIsEditSaving(true);
         try {
-            await updateMessage(msg.id, content);
-            showToast('Message updated!', 'success');
+            const updated = await updateMessage(msg.id, content);
+            if (updated.syncState === 'pending') {
+                showToast('Edit saved offline, will sync automatically', 'info');
+            } else {
+                showToast('Message updated!', 'success');
+            }
             setIsEditing(false);
         } catch (err) {
             showToast('Failed to update message', 'error');
@@ -110,6 +136,7 @@ const PostDetail: Component = () => {
                 >
                     ← Back
                 </button>
+                <SyncStatus />
                 <Show when={message()}>
                     <div class="post-actions">
                         <button
@@ -133,7 +160,16 @@ const PostDetail: Component = () => {
             </header>
 
             <main class="post-detail-main">
-                <span class="post-timestamp">{timestamp()}</span>
+                <div class="post-meta">
+                    <span class="post-timestamp">{timestamp()}</span>
+                    <Show when={syncBadge()}>
+                        {(badge) => (
+                            <span class={badge().className} aria-label={badge().label}>
+                                {badge().label}
+                            </span>
+                        )}
+                    </Show>
+                </div>
 
                 <Show when={messagesStore.isSyncing && !message()}>
                     <div class="loading-container">

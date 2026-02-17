@@ -1,7 +1,8 @@
-import type { Component } from 'solid-js';
+import { createEffect, onCleanup, type Component } from 'solid-js';
 import { Router, Route, Navigate } from '@solidjs/router';
 import { isAuthenticated } from './stores/authStore';
 import { ToastContainer } from './components/Toast';
+import { initOfflineMessages, startOutboxAutoSync, stopOutboxAutoSync, syncOutbox } from './stores/messagesStore';
 import Login from './pages/Login';
 import Feed from './pages/Feed';
 import Settings from './pages/Settings';
@@ -25,6 +26,29 @@ const PublicRoute: Component<{ component: Component }> = (props) => {
 };
 
 const App: Component = () => {
+    let autoSyncCleanup: (() => void) | null = null;
+
+    createEffect(() => {
+        if (isAuthenticated()) {
+            void initOfflineMessages();
+            void syncOutbox();
+            if (!autoSyncCleanup) {
+                autoSyncCleanup = startOutboxAutoSync();
+            }
+        } else if (autoSyncCleanup) {
+            autoSyncCleanup();
+            autoSyncCleanup = null;
+        }
+    });
+
+    onCleanup(() => {
+        if (autoSyncCleanup) {
+            autoSyncCleanup();
+            autoSyncCleanup = null;
+        }
+        stopOutboxAutoSync();
+    });
+
     return (
         <>
             <ToastContainer />

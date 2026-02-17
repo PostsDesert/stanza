@@ -16,6 +16,16 @@ interface MessageCardProps {
 const PREVIEW_LENGTH = 200;
 
 export const MessageCard: Component<MessageCardProps> = (props) => {
+    const syncBadge = createMemo(() => {
+        if (props.message.syncState === 'failed') {
+            return { label: 'Sync failed', className: 'message-sync-badge is-failed' };
+        }
+        if (props.message.syncState === 'pending') {
+            return { label: 'Queued', className: 'message-sync-badge is-pending' };
+        }
+        return null;
+    });
+
     const preview = createMemo(() => {
         const content = props.message.content;
         if (content.length <= PREVIEW_LENGTH) {
@@ -87,9 +97,18 @@ export const MessageCard: Component<MessageCardProps> = (props) => {
             </div>
 
             <div class="message-footer">
-                <time class="message-timestamp" datetime={props.message.created_at}>
-                    {timestamp()}
-                </time>
+                <div class="message-meta">
+                    <time class="message-timestamp" datetime={props.message.created_at}>
+                        {timestamp()}
+                    </time>
+                    <Show when={syncBadge()}>
+                        {(badge) => (
+                            <span class={badge().className} aria-label={badge().label}>
+                                {badge().label}
+                            </span>
+                        )}
+                    </Show>
+                </div>
 
                 <div class="message-actions">
                     <button

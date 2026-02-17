@@ -41,7 +41,7 @@ export const HeaderMenu: Component = () => {
 
     const handleLogout = () => {
         setIsOpen(false);
-        logout();
+        void logout();
         navigate('/login', { replace: true });
     };
 

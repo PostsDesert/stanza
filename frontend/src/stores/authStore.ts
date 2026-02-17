@@ -1,12 +1,29 @@
 import { createSignal } from 'solid-js';
 import { api } from '../services/api';
 import type { User } from '../types';
+import { clearOfflineForCurrentUser, clearMessages, stopOutboxAutoSync } from './messagesStore';
+
+const TOKEN_KEY = 'token';
+const USER_KEY = 'user';
+const CURRENT_USER_ID_KEY = 'current_user_id';
 
 // Auth state
 const [token, setTokenSignal] = createSignal<string | null>(
-    typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null
 );
-const [user, setUserSignal] = createSignal<User | null>(null);
+const [user, setUserSignal] = createSignal<User | null>(
+    typeof window !== 'undefined'
+        ? (() => {
+            const serialized = localStorage.getItem(USER_KEY);
+            if (!serialized) return null;
+            try {
+                return JSON.parse(serialized) as User;
+            } catch {
+                return null;
+            }
+        })()
+        : null
+);
 
 // Derived state
 export function isAuthenticated(): boolean {
@@ -23,14 +40,21 @@ export const authStore = {
 export function setToken(newToken: string | null): void {
     setTokenSignal(newToken);
     if (newToken) {
-        localStorage.setItem('token', newToken);
+        localStorage.setItem(TOKEN_KEY, newToken);
     } else {
-        localStorage.removeItem('token');
+        localStorage.removeItem(TOKEN_KEY);
     }
 }
 
 export function setUser(newUser: User | null): void {
     setUserSignal(newUser);
+    if (newUser) {
+        localStorage.setItem(USER_KEY, JSON.stringify(newUser));
+        localStorage.setItem(CURRENT_USER_ID_KEY, newUser.id);
+    } else {
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(CURRENT_USER_ID_KEY);
+    }
 }
 
 export async function login(email: string, password: string): Promise<void> {
@@ -39,7 +63,11 @@ export async function login(email: string, password: string): Promise<void> {
     setUser(response.user);
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
+    stopOutboxAutoSync();
+    const purgePromise = clearOfflineForCurrentUser();
+    clearMessages();
     setToken(null);
     setUser(null);
+    await purgePromise;
 }

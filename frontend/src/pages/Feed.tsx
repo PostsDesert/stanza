@@ -1,13 +1,14 @@
 import { Component, For, Show, onMount, createSignal, createMemo } from 'solid-js';
 import { useNavigate, useSearchParams } from '@solidjs/router';
-import { messagesStore, fetchMessages, addMessage, updateMessage, deleteMessage } from '../stores/messagesStore';
-import { showToast } from '../stores/uiStore';
+import { messagesStore, fetchMessages, addMessage, updateMessage, deleteMessage, initOfflineMessages, syncOutbox } from '../stores/messagesStore';
+import { showToast, uiStore } from '../stores/uiStore';
 import { MessageCard } from '../components/MessageCard';
 import { MessageInput } from '../components/MessageInput';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EditModal } from '../components/EditModal';
 import { SearchBar } from '../components/SearchBar';
 import { HeaderMenu } from '../components/HeaderMenu';
+import { SyncStatus } from '../components/SyncStatus';
 import { api } from '../services/api';
 import { parseSearchQuery } from '../utils/search';
 import type { Message, SearchQuery } from '../types';
@@ -46,8 +47,12 @@ export const Feed: Component = () => {
 
     const handleSubmit = async (content: string) => {
         try {
-            await addMessage(content);
-            showToast('Message posted!', 'success');
+            const message = await addMessage(content);
+            if (message.syncState === 'pending') {
+                showToast('Saved offline, will sync automatically', 'info');
+            } else {
+                showToast('Message posted!', 'success');
+            }
         } catch (err) {
             showToast('Failed to post message', 'error');
         }
@@ -58,7 +63,11 @@ export const Feed: Component = () => {
 
         try {
             await deleteMessage(id);
-            showToast('Message deleted', 'info');
+            if (uiStore.isOnline) {
+                showToast('Message deleted', 'info');
+            } else {
+                showToast('Delete queued for sync', 'info');
+            }
         } catch (err) {
             showToast('Failed to delete message', 'error');
         }
@@ -70,8 +79,12 @@ export const Feed: Component = () => {
 
         setIsEditSaving(true);
         try {
-            await updateMessage(id, content);
-            showToast('Message updated!', 'success');
+            const updated = await updateMessage(id, content);
+            if (updated.syncState === 'pending') {
+                showToast('Edit saved offline, will sync automatically', 'info');
+            } else {
+                showToast('Message updated!', 'success');
+            }
             setEditingMessageId(null);
         } catch (err) {
             showToast('Failed to update message', 'error');
@@ -114,6 +127,8 @@ export const Feed: Component = () => {
     };
 
     onMount(async () => {
+        await initOfflineMessages();
+
         // Check for search query in URL
         const q = searchParams.q;
         if (q) {
@@ -124,9 +139,14 @@ export const Feed: Component = () => {
         }
 
         try {
-            await fetchMessages();
+            if (uiStore.isOnline) {
+                await fetchMessages();
+                await syncOutbox();
+            }
         } catch (err) {
-            showToast('Failed to load messages', 'error');
+            if (messagesStore.messages.length === 0) {
+                showToast('Failed to load messages', 'error');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -144,6 +164,7 @@ export const Feed: Component = () => {
                     isSearching={isSearching()}
                     isSearchActive={isSearchActive()}
                 />
+                <SyncStatus />
                 <HeaderMenu />
             </header>
 
@@ -191,7 +212,7 @@ export const Feed: Component = () => {
                 </Show>
             </main>
 
-            <MessageInput onSubmit={handleSubmit} disabled={messagesStore.isSyncing} />
+            <MessageInput onSubmit={handleSubmit} />
 
             <EditModal
                 isOpen={editingMessageId() !== null}

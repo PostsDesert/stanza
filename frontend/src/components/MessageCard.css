@@ -47,9 +47,37 @@
     justify-content: space-between;
 }
 
+.message-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .message-timestamp {
     font-size: 13px;
     color: var(--text-secondary);
+}
+
+.message-sync-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.message-sync-badge.is-pending {
+    color: #b45309;
+    background: rgba(217, 119, 6, 0.12);
+    border-color: rgba(217, 119, 6, 0.28);
+}
+
+.message-sync-badge.is-failed {
+    color: #b91c1c;
+    background: rgba(220, 38, 38, 0.12);
+    border-color: rgba(220, 38, 38, 0.3);
 }
 
 .message-actions {

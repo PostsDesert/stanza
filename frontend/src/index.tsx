@@ -1,6 +1,7 @@
 import { render } from 'solid-js/web';
 import 'solid-devtools';
 import App from './App';
+import { registerSW } from 'virtual:pwa-register';
 
 const root = document.getElementById('root');
 
@@ -11,3 +12,7 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
 }
 
 render(() => <App />, root!);
+
+if (import.meta.env.PROD) {
+    registerSW({ immediate: true });
+}
