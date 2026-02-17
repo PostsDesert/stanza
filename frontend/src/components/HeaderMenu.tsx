@@ -7,6 +7,7 @@ import { LogoutIcon } from './icons/LogoutIcon';
 import { SunIcon } from './icons/SunIcon';
 import { MoonIcon } from './icons/MoonIcon';
 import { MonitorIcon } from './icons/MonitorIcon';
+import { SyncStatus } from './SyncStatus';
 import './HeaderMenu.css';
 
 export const HeaderMenu: Component = () => {
@@ -82,6 +83,10 @@ export const HeaderMenu: Component = () => {
 
             <Show when={isOpen()}>
                 <div class="menu-dropdown">
+                    <div class="menu-sync-status">
+                        <SyncStatus variant="menu" />
+                    </div>
+                    <div class="menu-divider menu-sync-divider-mobile" />
                     <button class="menu-item menu-item-settings" onClick={handleSettings}>
                         <span class="menu-icon"><SettingsIcon width="20" height="20" /></span>
                         <span>Settings</span>

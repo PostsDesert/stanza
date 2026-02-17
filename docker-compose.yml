@@ -2,8 +2,8 @@ name: dissipate
 services:
   app:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
       args:
         # IMPORTANT: Set this to your actual domain/hostname
         # The frontend needs this at BUILD time to know where to send API requests
@@ -17,5 +17,5 @@ services:
       - JWT_SECRET=${JWT_SECRET:-change_me_in_production}
       - RUST_LOG=${RUST_LOG:-info}
     volumes:
-      - ../backend/database:/app/database
+      - ./backend/database:/app/database
     restart: unless-stopped

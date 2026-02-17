@@ -17,6 +17,12 @@
     display: inline-block;
 }
 
+.sync-status.is-menu {
+    width: 100%;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
 .sync-status.is-synced {
     background: rgba(22, 163, 74, 0.12);
     color: #166534;
@@ -65,4 +71,20 @@
 
 .sync-status.is-failed .sync-status-dot {
     background: #dc2626;
+}
+
+@media (max-width: 640px) {
+    .sync-status.is-compact-mobile {
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        gap: 0;
+        border: none;
+        background: transparent;
+        justify-content: center;
+    }
+
+    .sync-status.is-compact-mobile .sync-status-label {
+        display: none;
+    }
 }

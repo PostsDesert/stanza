@@ -3,7 +3,12 @@ import { messagesStore } from '../stores/messagesStore';
 import { uiStore } from '../stores/uiStore';
 import './SyncStatus.css';
 
-export const SyncStatus: Component = () => {
+type SyncStatusProps = {
+    variant?: 'pill' | 'menu';
+    compactOnMobile?: boolean;
+};
+
+export const SyncStatus: Component<SyncStatusProps> = (props) => {
     const statusClass = () => {
         if (!uiStore.isOnline) return 'is-offline';
         if (messagesStore.failedCount > 0) return 'is-failed';
@@ -22,7 +27,12 @@ export const SyncStatus: Component = () => {
     };
 
     return (
-        <div class={`sync-status ${statusClass()}`} role="status" aria-live="polite">
+        <div
+            class={`sync-status ${statusClass()} ${props.variant === 'menu' ? 'is-menu' : ''} ${props.compactOnMobile ? 'is-compact-mobile' : ''}`}
+            role="status"
+            aria-live="polite"
+            aria-label={`Sync status: ${statusLabel()}`}
+        >
             <span class="sync-status-dot" />
             <span class="sync-status-label">{statusLabel()}</span>
         </div>

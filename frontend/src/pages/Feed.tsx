@@ -164,7 +164,7 @@ export const Feed: Component = () => {
                     isSearching={isSearching()}
                     isSearchActive={isSearchActive()}
                 />
-                <SyncStatus />
+                <SyncStatus compactOnMobile />
                 <HeaderMenu />
             </header>
 

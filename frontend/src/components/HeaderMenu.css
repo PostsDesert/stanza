@@ -39,6 +39,11 @@
     animation: menuFadeIn 0.15s ease-out;
 }
 
+.menu-sync-status {
+    display: none;
+    padding: 4px;
+}
+
 @keyframes menuFadeIn {
     from {
         opacity: 0;
@@ -100,4 +105,18 @@
     height: 1px;
     margin: 6px 0;
     background: var(--border-color);
+}
+
+.menu-sync-divider-mobile {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .menu-sync-status {
+        display: block;
+    }
+
+    .menu-sync-divider-mobile {
+        display: block;
+    }
 }
