@@ -44,12 +44,30 @@ async function request<T>(
         (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-        ...options,
-        headers,
-    });
+    const url = `${API_URL}${endpoint}`;
+    const method = options.method || 'GET';
+    let response: Response;
+    try {
+        response = await fetch(url, {
+            ...options,
+            headers,
+        });
+    } catch (error) {
+        console.error('[api] Network request failed', {
+            method,
+            url,
+            error: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+    }
 
     if (!response.ok) {
+        console.warn('[api] Request failed', {
+            method,
+            url,
+            status: response.status,
+            statusText: response.statusText,
+        });
         throw new ApiError(response.statusText, response.status);
     }
 

@@ -1,4 +1,4 @@
-import { createEffect, onCleanup, Show, type Component } from 'solid-js';
+import { createEffect, on, onCleanup, Show, type Component } from 'solid-js';
 import { Router, Route, Navigate } from '@solidjs/router';
 import { isAuthenticated } from './stores/authStore';
 import { ToastContainer } from './components/Toast';
@@ -30,8 +30,8 @@ const PublicRoute: Component<{ component: Component }> = (props) => {
 const App: Component = () => {
     let autoSyncCleanup: (() => void) | null = null;
 
-    createEffect(() => {
-        if (isAuthenticated()) {
+    createEffect(on(isAuthenticated, (authenticated) => {
+        if (authenticated) {
             void initOfflineMessages();
             void syncOutbox();
             if (!autoSyncCleanup) {
@@ -41,7 +41,7 @@ const App: Component = () => {
             autoSyncCleanup();
             autoSyncCleanup = null;
         }
-    });
+    }));
 
     onCleanup(() => {
         if (autoSyncCleanup) {

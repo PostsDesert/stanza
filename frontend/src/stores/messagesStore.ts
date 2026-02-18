@@ -10,6 +10,7 @@ import {
 import type { Message, PendingOperation } from '../types';
 
 const CURRENT_USER_ID_KEY = 'current_user_id';
+const USER_KEY = 'user';
 
 // Messages state
 const [messages, setMessages] = createSignal<Message[]>([]);
@@ -41,7 +42,23 @@ export const messagesStore = {
 
 function getCurrentUserId(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem(CURRENT_USER_ID_KEY);
+    const explicitId = localStorage.getItem(CURRENT_USER_ID_KEY);
+    if (explicitId) return explicitId;
+
+    // Recover from legacy/incomplete auth state where token exists but current_user_id is missing.
+    const serializedUser = localStorage.getItem(USER_KEY);
+    if (!serializedUser) return null;
+    try {
+        const parsed = JSON.parse(serializedUser) as { id?: unknown };
+        if (typeof parsed.id === 'string' && parsed.id.length > 0) {
+            localStorage.setItem(CURRENT_USER_ID_KEY, parsed.id);
+            return parsed.id;
+        }
+    } catch {
+        // Ignore malformed user payload and behave as unauthenticated for replay.
+    }
+
+    return null;
 }
 
 function getNowIso(): string {
@@ -361,12 +378,22 @@ export async function deleteMessage(id: string): Promise<void> {
 }
 
 export async function syncOutbox(): Promise<void> {
-    if (isReplaying() || !isOnline()) {
+    if (isReplaying()) {
+        return;
+    }
+
+    if (!isOnline()) {
+        if (outbox().some((op) => op.status === 'pending')) {
+            console.info('[outbox] Replay skipped: browser reports offline');
+        }
         return;
     }
 
     const userId = getCurrentUserId();
     if (!userId) {
+        if (outbox().some((op) => op.status === 'pending')) {
+            console.warn('[outbox] Replay skipped: missing current_user_id in localStorage');
+        }
         return;
     }
 
@@ -390,6 +417,12 @@ export async function syncOutbox(): Promise<void> {
                 updatedAt: getNowIso(),
             });
             await persistOutbox();
+            console.info('[outbox] Replaying operation', {
+                opId: nextOp.opId,
+                type: nextOp.type,
+                messageId: nextOp.messageId,
+                attempts: nextOp.attempts + 1,
+            });
 
             try {
                 if (nextOp.type === 'create') {
@@ -424,6 +457,11 @@ export async function syncOutbox(): Promise<void> {
                 removeOperation(nextOp.opId);
                 await Promise.all([persistMessages(), persistOutbox()]);
                 setLastReplayAt(getNowIso());
+                console.info('[outbox] Operation replayed successfully', {
+                    opId: nextOp.opId,
+                    type: nextOp.type,
+                    messageId: nextOp.messageId,
+                });
             } catch (error) {
                 if (isNetworkError(error)) {
                     markOperationStatus(nextOp.opId, {
@@ -433,6 +471,11 @@ export async function syncOutbox(): Promise<void> {
                     });
                     await persistOutbox();
                     setLastReplayError('Network unavailable');
+                    console.warn('[outbox] Replay paused by network error', {
+                        opId: nextOp.opId,
+                        messageId: nextOp.messageId,
+                        error: error instanceof Error ? error.message : String(error),
+                    });
                     break;
                 }
 
@@ -446,6 +489,11 @@ export async function syncOutbox(): Promise<void> {
                     await persistOutbox();
                     setLastReplayError('Authentication required');
                     setAuthRequiredForReplay(true);
+                    console.warn('[outbox] Replay paused: authentication required', {
+                        opId: nextOp.opId,
+                        messageId: nextOp.messageId,
+                        status: error.status,
+                    });
                     break;
                 }
 
@@ -457,6 +505,13 @@ export async function syncOutbox(): Promise<void> {
                 });
                 setMessageSyncState(nextOp.messageId, 'failed');
                 await Promise.all([persistMessages(), persistOutbox()]);
+                console.error('[outbox] Replay failed permanently', {
+                    opId: nextOp.opId,
+                    type: nextOp.type,
+                    messageId: nextOp.messageId,
+                    error: error instanceof Error ? error.message : String(error),
+                    status: error instanceof ApiError ? error.status : undefined,
+                });
             }
         }
     } finally {
