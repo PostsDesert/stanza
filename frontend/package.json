@@ -26,6 +26,6 @@
     "@solidjs/router": "^0.15.0",
     "date-fns": "^4.0.0",
     "idb-keyval": "^6.2.1",
-    "solid-js": "^1.9.5"
+    "solid-js": "^1.9.11"
   }
 }
