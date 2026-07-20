@@ -1,4 +1,4 @@
-use dissipate_backend::{db, models::User, utils::hash_password};
+use stanza_backend::{db, models::User, utils::hash_password};
 use std::env;
 
 #[tokio::main]
@@ -6,7 +6,7 @@ async fn main() -> anyhow::Result<()> {
     // Load .env if available
     dotenvy::dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:dissipate.db".to_string());
+    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:stanza.db".to_string());
     
     // Connect to DB
     let pool = db::init_pool(&database_url).await?;

@@ -39,7 +39,7 @@ export const LoginForm: Component<LoginFormProps> = (props) => {
 
     return (
         <form class="login-form" onSubmit={handleSubmit}>
-            <h1 class="login-title">Dissipate</h1>
+            <h1 class="login-title">Stanza</h1>
             <p class="login-subtitle">Your personal microblog</p>
 
             <Show when={error()}>

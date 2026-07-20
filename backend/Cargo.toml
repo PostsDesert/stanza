@@ -1,11 +1,11 @@
 [package]
-name = "dissipate-backend"
+name = "stanza-backend"
 version = "0.1.0"
 edition = "2021"
-default-run = "dissipate-backend"
+default-run = "stanza-backend"
 
 [lib]
-name = "dissipate_backend"
+name = "stanza_backend"
 path = "src/lib.rs"
 
 [dependencies]

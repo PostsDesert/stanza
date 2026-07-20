@@ -14,11 +14,11 @@ cleanup() {
 # Trap Ctrl+C (SIGINT) and exit (SIGTERM)
 trap cleanup SIGINT SIGTERM
 
-echo "Starting Dissipate Development Environment..."
+echo "Starting Stanza Development Environment..."
 
 # Start Backend
 echo "Starting Backend..."
-(cd "$SCRIPT_DIR/backend" && DATABASE_URL=sqlite:database/dissipate.db JWT_SECRET=dev-secret-key cargo run) &
+(cd "$SCRIPT_DIR/backend" && DATABASE_URL=sqlite:database/stanza.db JWT_SECRET=dev-secret-key cargo run) &
 
 # Start Frontend
 echo "Starting Frontend..."

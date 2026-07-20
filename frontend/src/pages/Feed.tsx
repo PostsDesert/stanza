@@ -155,7 +155,7 @@ export const Feed: Component = () => {
     return (
         <div class="feed-page">
             <header class="feed-header">
-                <h1 class="feed-title" onClick={handleLogoClick}>Dissipate</h1>
+                <h1 class="feed-title" onClick={handleLogoClick}>Stanza</h1>
                 <SearchBar
                     query={searchQuery()}
                     onQueryChange={setSearchQuery}

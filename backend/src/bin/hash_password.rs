@@ -1,6 +1,6 @@
 // Utility to generate password hashes for seeding
 
-use dissipate_backend::utils::hash_password;
+use stanza_backend::utils::hash_password;
 
 fn main() {
     let password = "password123";

@@ -163,7 +163,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "dissipate_backend=debug,tower_http=debug".into()),
+                .unwrap_or_else(|_| "stanza_backend=debug,tower_http=debug".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -172,7 +172,7 @@ async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
 
     let database_url =
-        std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:dissipate.db".to_string());
+        std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:stanza.db".to_string());
     let jwt_secret =
         std::env::var("JWT_SECRET").expect("JWT_SECRET environment variable must be set");
 

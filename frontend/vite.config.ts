@@ -22,7 +22,7 @@ export default defineConfig({
             urlPattern: ({ request }) => request.destination === 'document',
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'dissipate-pages',
+              cacheName: 'stanza-pages',
               networkTimeoutSeconds: 3,
             },
           },
@@ -30,14 +30,14 @@ export default defineConfig({
             urlPattern: ({ request }) => request.destination === 'style' || request.destination === 'script',
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'dissipate-assets',
+              cacheName: 'stanza-assets',
             },
           },
           {
             urlPattern: ({ request }) => request.destination === 'image',
             handler: 'CacheFirst',
             options: {
-              cacheName: 'dissipate-images',
+              cacheName: 'stanza-images',
             },
           },
         ],

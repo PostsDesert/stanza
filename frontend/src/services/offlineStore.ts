@@ -1,7 +1,7 @@
 import { clear, createStore, del, get, set } from 'idb-keyval';
 import type { Message, PendingOperation } from '../types';
 
-const offlineDb = createStore('dissipate-offline-db', 'offline-kv');
+const offlineDb = createStore('stanza-offline-db', 'offline-kv');
 const hasIndexedDb = typeof indexedDB !== 'undefined';
 
 function messagesKey(userId: string): string {

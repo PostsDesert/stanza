@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Seed script for Dissipate backend
+# Seed script for Stanza backend
 # Creates 2 test users with 5 sample messages each
 
 set -e
@@ -9,7 +9,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Default database path relative to the backend directory
-DB_PATH="${1:-$SCRIPT_DIR/../database/dissipate.db}"
+DB_PATH="${1:-$SCRIPT_DIR/../database/stanza.db}"
 
 echo "Seeding database: $DB_PATH"
 
@@ -66,7 +66,7 @@ VALUES
 -- Insert sample messages for User 1
 INSERT OR IGNORE INTO messages (id, user_id, content, created_at, updated_at)
 VALUES
-    ('$(generate_uuid)', '$USER1_ID', 'Just setting up my Dissipate account! 🎉', '$NOW', '$NOW'),
+    ('$(generate_uuid)', '$USER1_ID', 'Just setting up my Stanza account! 🎉', '$NOW', '$NOW'),
     ('$(generate_uuid)', '$USER1_ID', 'This is a great way to jot down my thoughts without worrying about likes or followers.', '$NOW', '$NOW'),
     ('$(generate_uuid)', '$USER1_ID', 'Reminder: Buy groceries tomorrow. Need milk, eggs, and bread.', '$NOW', '$NOW'),
     ('$(generate_uuid)', '$USER1_ID', 'Had an amazing idea for a new project today. Need to sketch it out later.', '$NOW', '$NOW'),
@@ -75,7 +75,7 @@ VALUES
 -- Insert sample messages for User 2
 INSERT OR IGNORE INTO messages (id, user_id, content, created_at, updated_at)
 VALUES
-    ('$(generate_uuid)', '$USER2_ID', 'Hello, Dissipate! Ready to start my personal microblog.', '$NOW', '$NOW'),
+    ('$(generate_uuid)', '$USER2_ID', 'Hello, Stanza! Ready to start my personal microblog.', '$NOW', '$NOW'),
     ('$(generate_uuid)', '$USER2_ID', 'Today I learned something new about Rust generics. The type system is fascinating!', '$NOW', '$NOW'),
     ('$(generate_uuid)', '$USER2_ID', 'Meeting notes: Discussed the Q1 roadmap. Key focus areas are performance and UX.', '$NOW', '$NOW'),
     ('$(generate_uuid)', '$USER2_ID', 'Random thought: Coffee tastes better when you have a deadline. ☕', '$NOW', '$NOW'),

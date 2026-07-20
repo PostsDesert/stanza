@@ -88,7 +88,7 @@ export const Settings: Component = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'dissipate-export.json';
+            a.download = 'stanza-export.json';
             a.click();
             URL.revokeObjectURL(url);
             showToast('Export downloaded', 'success');
@@ -104,7 +104,7 @@ export const Settings: Component = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'dissipate-export.md';
+            a.download = 'stanza-export.md';
             a.click();
             URL.revokeObjectURL(url);
             showToast('Export downloaded', 'success');

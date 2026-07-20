@@ -5,4 +5,4 @@
 .DS_Store
 *.db
 *.db-journal
-backend/dissipate.db
+backend/stanza.db

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Quick deployment script for Dissipate
+# Quick deployment script for Stanza
 # This script helps you deploy with the correct configuration
 
 set -e
@@ -26,7 +26,7 @@ if [ -z "$COMPOSE_FILE" ]; then
     exit 1
 fi
 
-echo -e "${GREEN}Dissipate Deployment Helper${NC}"
+echo -e "${GREEN}Stanza Deployment Helper${NC}"
 echo ""
 
 # Check if .env exists
@@ -81,7 +81,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Stop with: docker compose -f $COMPOSE_FILE down"
     echo ""
     echo "To manage users, exec into the container:"
-    echo "  docker exec -it dissipate /bin/bash"
+    echo "  docker exec -it stanza /bin/bash"
     echo "  Then run: manage_users add email@example.com username 'password'"
 else
     echo "Deployment cancelled"

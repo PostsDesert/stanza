@@ -1,4 +1,4 @@
-# Dissipate Deployment Guide
+# Stanza Deployment Guide
 
 ## Environment Configuration
 
@@ -13,7 +13,7 @@ The frontend needs to know the API URL **when it's being built**. This is set vi
 ### Backend Configuration (Runtime)
 
 The backend configuration is set at runtime through environment variables:
-- `DATABASE_URL`: SQLite database path (default: `sqlite:///app/database/dissipate.db`)
+- `DATABASE_URL`: SQLite database path (default: `sqlite:///app/database/stanza.db`)
 - `JWT_SECRET`: Secret key for JWT token generation (⚠️ **MUST** be changed in production!)
 - `RUST_LOG`: Logging level (options: `error`, `warn`, `info`, `debug`, `trace`)
 
@@ -78,19 +78,19 @@ If you prefer to use Docker directly:
 # Build the image
 docker build \
   --build-arg VITE_API_URL=https://your-domain.com/api \
-  -t dissipate:latest \
+  -t stanza:latest \
   -f docker/Dockerfile \
   .
 
 # Run the container
 docker run -d \
-  --name dissipate \
+  --name stanza \
   -p 3000:3000 \
-  -e DATABASE_URL=sqlite:///app/database/dissipate.db \
+  -e DATABASE_URL=sqlite:///app/database/stanza.db \
   -e JWT_SECRET=your-secret-key \
   -e RUST_LOG=info \
-  -v dissipate-data:/app/database \
-  dissipate:latest
+  -v stanza-data:/app/database \
+  stanza:latest
 ```
 
 ## User Management
@@ -99,7 +99,7 @@ The container includes a `manage_users` binary for user management:
 
 ```bash
 # Exec into the container
-docker exec -it dissipate /bin/bash
+docker exec -it stanza /bin/bash
 
 # Add a user
 manage_users add email@example.com username 'password123'
@@ -116,7 +116,7 @@ manage_users remove email@example.com
 - [ ] Change `JWT_SECRET` to a long random string (minimum 32 characters)
 - [ ] Use HTTPS in production (set up reverse proxy with SSL)
 - [ ] Set `RUST_LOG=info` or `warn` in production (avoid `debug` or `trace`)
-- [ ] Regularly backup the `backend/database/dissipate.db` file
+- [ ] Regularly backup the `backend/database/stanza.db` file
 - [ ] Keep Docker images up to date
 
 ## Troubleshooting
@@ -135,16 +135,16 @@ If you see CORS errors in the browser console:
 
 ### Database Management
 
-The database is stored as a file on the host machine at `backend/database/dissipate.db`. This file is mounted into the container.
+The database is stored as a file on the host machine at `backend/database/stanza.db`. This file is mounted into the container.
 
 **Backup:**
-Simply copy the `backend/database/dissipate.db` file to a safe location.
+Simply copy the `backend/database/stanza.db` file to a safe location.
 
 **Reset Database:**
 To reset the database (⚠️ deletes all data), stop the container and delete the file:
 ```bash
 docker-compose down
-rm backend/database/dissipate.db
+rm backend/database/stanza.db
 docker-compose up -d --build
 ```
 
@@ -156,7 +156,7 @@ View application logs:
 docker-compose logs -f
 
 # Just application logs
-docker logs -f dissipate
+docker logs -f stanza
 ```
 
 ## Example nginx Configuration

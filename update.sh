@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Update script for Dissipate
+# Update script for Stanza
 # Pulls latest changes and rebuilds the Docker containers
 
 set -e

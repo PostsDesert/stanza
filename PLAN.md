@@ -1,4 +1,4 @@
-# Dissipate - Twitter Clone Implementation Plan
+# Stanza - Twitter Clone Implementation Plan
 
 ## Project Overview
 A personal Twitter-like microblogging platform where users only see their own messages. Built with SolidJS (frontend) and Rust/Axum (backend) with SQLite database.
@@ -419,8 +419,8 @@ type PendingOp = {
 #### pwa-manifest.json
 ```json
 {
-  "name": "Dissipate",
-  "short_name": "Dissipate",
+  "name": "Stanza",
+  "short_name": "Stanza",
   "description": "Personal microblogging platform",
   "start_url": "/",
   "display": "standalone",
@@ -459,7 +459,7 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\.dissipate\.com\/.*/i,
+            urlPattern: /^https:\/\/api\.stanza\.com\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
@@ -666,7 +666,7 @@ npm run typecheck        # Type check
 ### Database
 ```bash
 cd backend
-sqlite3 dissipate.db     # Open database
+sqlite3 stanza.db     # Open database
 ./scripts/seed.sh        # Seed test data
 ```
 
@@ -676,7 +676,7 @@ sqlite3 dissipate.db     # Open database
 
 ### Backend (.env)
 ```
-DATABASE_URL=sqlite:dissipate.db
+DATABASE_URL=sqlite:stanza.db
 JWT_SECRET=your-secret-key
 RUST_LOG=debug
 ```

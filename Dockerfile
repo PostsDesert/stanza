@@ -39,14 +39,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the backend binary and the management utility
-COPY --from=backend-builder /app/target/release/dissipate-backend /app/
+COPY --from=backend-builder /app/target/release/stanza-backend /app/
 COPY --from=backend-builder /app/target/release/manage_users /app/
 
 # Copy the frontend static files
 COPY --from=frontend-builder /app/frontend/dist /app/dist
 
 # Environment variables
-ENV DATABASE_URL="sqlite:///app/database/dissipate.db"
+ENV DATABASE_URL="sqlite:///app/database/stanza.db"
 ENV JWT_SECRET="change_me_in_production"
 ENV RUST_LOG="info"
 ENV PATH="/app:${PATH}"
@@ -59,4 +59,4 @@ VOLUME /app/database
 EXPOSE 3000
 
 # Start the backend
-CMD ["./dissipate-backend"]
+CMD ["./stanza-backend"]

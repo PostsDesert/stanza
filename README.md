@@ -1,14 +1,14 @@
-# Dissipate - Personal Microblogging Platform
+# Stanza - Personal Microblogging Platform
 
 A Twitter-like microblogging platform where users only see their own messages.
 
 ## Project Structure
 
 ```
-dissipate/
+stanza/
 ├── backend/          # Rust/Axum backend
 ├── frontend/         # SolidJS frontend
-├── backend/database/ # SQLite database file (dissipate.db)
+├── backend/database/ # SQLite database file (stanza.db)
 └── PLAN.md           # Implementation plan
 ```
 

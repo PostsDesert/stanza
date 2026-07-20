@@ -1,4 +1,4 @@
-name: dissipate
+name: stanza
 services:
   app:
     build:
@@ -8,14 +8,18 @@ services:
         # IMPORTANT: Set this to your actual domain/hostname
         # The frontend needs this at BUILD time to know where to send API requests
         VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
-    container_name: dissipate
-    ports:
-      - "57283:3000" # Maps Host 57283 to Container 3000
+    container_name: stanza
     environment:
       # Backend runtime configuration
-      - DATABASE_URL=sqlite:///app/database/dissipate.db
+      - DATABASE_URL=sqlite:///app/database/stanza.db
       - JWT_SECRET=${JWT_SECRET:-change_me_in_production}
       - RUST_LOG=${RUST_LOG:-info}
     volumes:
       - ./backend/database:/app/database
+    networks:
+      - app_proxy
     restart: unless-stopped
+
+networks:
+  app_proxy:
+    external: true
